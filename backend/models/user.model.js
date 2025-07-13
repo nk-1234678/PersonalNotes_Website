@@ -1,4 +1,4 @@
-import mongoose from "mongoose"
+import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
   username: {
@@ -18,8 +18,72 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: Date.now(),
   },
-})
+  otp: {
+    type: String,
+  },
+  otpExpiry: {
+    type: Date,
+  },
 
-const User = mongoose.model("User", userSchema)
+  // 🔽 Added Personal Info Fields
+  firstName: {
+    type: String,
+    default: "",
+  },
+  lastName: {
+    type: String,
+    default: "",
+  },
+  phone: {
+    type: String,
+    default: "",
+  },
+  country: {
+    type: String,
+    default: "",
+  },
+  city: {
+    type: String,
+    default: "",
+  },
+  address: {
+    type: String,
+    default: "",
+  },
+  zipCode: {
+    type: String,
+    default: "",
+  },
+  profileImage: {
+    type: String,
+    default: "", // Store image URL or path
+  },
+  role: { 
+    type: String, 
+    default: "" 
+  },
+  organization: {
+    type: String, 
+    default: "" 
+  },
+  department: {
+    type: String, 
+    default: "" 
+  },
+  experience: {
+    type: Number, 
+    default: 0 
+  },
+  linkedin: { 
+    type: String, 
+    default: "" 
+  },
+  portfolio: { 
+    type: String, 
+    default: "" 
+  },
+});
 
-export default User
+const User = mongoose.model("User", userSchema);
+
+export default User;

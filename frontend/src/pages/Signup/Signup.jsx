@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import  { useState } from "react"
 import PasswordInput from "../../components/Input/PasswordInput"
 import { Link, useNavigate } from "react-router-dom"
 import { validateEmail } from "../../utils/helper"
@@ -61,7 +61,7 @@ const Signup = () => {
 
   return (
     <>
-      <div className="flex items-center justify-center mt-28">
+      <div className="flex items-center justify-center min-h-screen ">
         <div className="w-96 border rounded bg-white px-7 py-10">
           <form onSubmit={handleSignUp}>
             <h4 className="text-2xl mb-7">Sign Up</h4>

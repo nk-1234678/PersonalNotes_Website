@@ -1,8 +1,10 @@
 // src/pages/Public/HomePage.jsx
 
+import AppPreviewSection from "../../components/HomePage_Components/AppPreviewSection";
 import FeaturesSection from "../../components/HomePage_Components/FeaturesSections";
-import HowItWorksSection from "../../components/HomePage_Components/HowItWorksSection";
+
 import IntroSection from "../../components/HomePage_Components/IntroSection";
+import MobileAppSection from "../../components/HomePage_Components/Mobileappsection";
 import WhoItIsFor from "../../components/HomePage_Components/WhoItIsFor";
 
 const HomePage = () => {
@@ -11,7 +13,8 @@ const HomePage = () => {
       <IntroSection/>
       <WhoItIsFor/>
       <FeaturesSection/>
-      <HowItWorksSection/>
+      <MobileAppSection/>
+      <AppPreviewSection/>
     </div>
   );
 };

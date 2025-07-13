@@ -10,6 +10,7 @@
   body {
     background-color: rgb(241, 245, 241);
     overflow-x: hidden;
+    @apply bg-white text-black dark:bg-slate-900 dark:text-white;
   }
 }
 
@@ -29,4 +30,12 @@
   .input-label {
     @apply text-xs text-slate-400;
   }
+}
+/* Hide scrollbar but keep scroll functionality */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;     /* Firefox */
 }

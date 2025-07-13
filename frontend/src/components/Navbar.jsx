@@ -1,28 +1,31 @@
-import  { useState } from "react"
-import SearchBar from "./SearchBar/SearchBar"
-import ProfileInfo from "./Cards/ProfileInfo"
-import { Link, useNavigate } from "react-router-dom"
+import { useState } from "react"
+import { useLocation, useNavigate, Link } from "react-router-dom"
 import { useDispatch } from "react-redux"
 import PropTypes from "prop-types"
-
+import axios from "axios"
 import { toast } from "react-toastify"
+
+import SearchBar from "./SearchBar/SearchBar"
+import ProfileInfo from "./Cards/ProfileInfo"
 import {
   signInSuccess,
   signoutFailure,
   signoutStart,
 } from "../redux/user/userSlice"
-import axios from "axios"
+import WelcomeSection from "./DashboardComponents/WelcomeSection"
+
 
 const Navbar = ({ userInfo, onSearchNote, handleClearSearch }) => {
   const [searchQuery, setSearchQuery] = useState("")
 
+  const location = useLocation()
   const navigate = useNavigate()
   const dispatch = useDispatch()
 
+  const isDashboard = location.pathname === "/user/dashboard"
+
   const handleSearch = () => {
-    if (searchQuery) {
-      onSearchNote(searchQuery)
-    }
+    if (searchQuery) onSearchNote(searchQuery)
   }
 
   const onClearSearch = () => {
@@ -54,26 +57,42 @@ const Navbar = ({ userInfo, onSearchNote, handleClearSearch }) => {
   }
 
   return (
-    <div className="bg-white flex items-center justify-between px-6 py-2 drop-shadow">
-      <Link to={"/"}>
-        <h2 className="text-xl font-medium text-black py-2">
-          <span className="text-slate-500">Good</span>
-          <span className="text-slate-900">Notes</span>
-        </h2>
-      </Link>
+    <div
+      className={`flex items-center justify-between px-4 py-1 drop-shadow transition-all duration-300 h-30 ${
+        isDashboard ? "bg-transparent " : "bg-white "
+      }`}
+    >
+      <div>
+        {isDashboard ? (
+         <WelcomeSection userInfo={userInfo}/>
 
-      <SearchBar
-        value={searchQuery}
-        onChange={({ target }) => setSearchQuery(target.value)}
-        handleSearch={handleSearch}
-        onClearSearch={onClearSearch}
-      />
+        ) : (
+          <Link to={"/"}>
+            <h2 className="text-xl font-medium text-black py-2">
+              <span className="text-slate-500">Good</span>
+              <span className="text-slate-900">Notes</span>
+            </h2>
+          </Link>
+        )}
+      </div>
 
-      <ProfileInfo userInfo={userInfo} onLogout={onLogout} />
+      <div
+        className={`flex items-center gap-4 ${
+          isDashboard ? "justify-end flex-1" : ""
+        }`}
+      >
+        <SearchBar
+          value={searchQuery}
+          onChange={({ target }) => setSearchQuery(target.value)}
+          handleSearch={handleSearch}
+          onClearSearch={onClearSearch}
+        />
+
+        <ProfileInfo userInfo={userInfo} onLogout={onLogout} />
+      </div>
     </div>
   )
 }
-
 
 Navbar.propTypes = {
   userInfo: PropTypes.shape({

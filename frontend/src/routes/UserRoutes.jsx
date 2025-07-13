@@ -3,8 +3,11 @@
 
 import { Navigate } from "react-router-dom";
 import UserLayout from "../layouts/UserLayout";
-import Home from "../pages/DashboardPage/Dashboard";
-import ProfileInfo from "../components/Cards/ProfileInfo"; // if needed
+
+import ProfileInfo from "../components/Cards/ProfileInfo";
+import AllNotesPage from "../pages/UserPages/AllNotesPage"; // if needed
+import DashboardPage from "../pages/UserPages/DashboardPage";
+import UserProfilePage from "../pages/UserPages/UserProfilePage";
 
 const UserRoutes = [
   {
@@ -12,8 +15,10 @@ const UserRoutes = [
     element: <UserLayout />,
     children: [
       { index: true, element: <Navigate to="dashboard" /> }, // default redirect
-      { path: "dashboard", element: <Home /> },
-      { path: "profile", element: <ProfileInfo /> }, // optional
+      { path: "dashboard", element: <DashboardPage /> },
+      { path: "profile", element: <ProfileInfo /> },
+      {path: "allnotes" , element: <AllNotesPage/>} ,
+       {path: "userprofile" , element: <UserProfilePage/>} ,// optional
     ],
   },
 ];

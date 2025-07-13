@@ -1,4 +1,4 @@
-import  { useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import NoteCard from "../../components/Cards/NoteCard"
 import { MdAdd } from "react-icons/md"
 import Modal from "react-modal"
@@ -9,29 +9,23 @@ import Navbar from "../../components/Navbar"
 import axios from "axios"
 import { toast } from "react-toastify"
 import EmptyCard from "../../components/EmptyCard/EmptyCard"
+import NoteFilters from "../../components/Filters/NoteFilters"
 
-const Home = () => {
-  const { currentUser, loading, errorDispatch } = useSelector(
-    (state) => state.user
-  )
-
+const AllNotesPage = () => {
+  const { currentUser } = useSelector((state) => state.user)
   const [userInfo, setUserInfo] = useState(null)
   const [allNotes, setAllNotes] = useState([])
-
   const [isSearch, setIsSearch] = useState(false)
-
-  // console.log(allNotes)
-
-  const navigate = useNavigate()
-
   const [openAddEditModal, setOpenAddEditModal] = useState({
     isShown: false,
     type: "add",
     data: null,
   })
 
+  const navigate = useNavigate()
+
   useEffect(() => {
-    if (currentUser === null || !currentUser) {
+    if (!currentUser) {
       navigate("/login")
     } else {
       setUserInfo(currentUser?.rest)
@@ -39,7 +33,7 @@ const Home = () => {
     }
   }, [])
 
-  // get all notes
+  // ✅ Fetch all notes (default)
   const getAllNotes = async () => {
     try {
       const res = await axios.get("http://localhost:3000/api/note/all", {
@@ -51,11 +45,34 @@ const Home = () => {
         return
       }
 
-      // console.log(res.data)
-
       setAllNotes(res.data.notes)
     } catch (error) {
       console.log(error)
+    }
+  }
+
+  // ✅ Fetch filtered notes from backend
+  const handleFilterChange = async (filters) => {
+    try {
+      const params = new URLSearchParams()
+      if (filters.tag) params.append("tag", filters.tag)
+      if (filters.sortBy) params.append("sortBy", filters.sortBy)
+
+      const res = await axios.get(
+        `http://localhost:3000/api/note/all?${params.toString()}`,
+        {
+          withCredentials: true,
+        }
+      )
+
+      if (res.data.success === false) {
+        toast.error(res.data.message)
+        return
+      }
+
+      setAllNotes(res.data.notes)
+    } catch (error) {
+      toast.error("Error fetching filtered notes")
     }
   }
 
@@ -63,7 +80,6 @@ const Home = () => {
     setOpenAddEditModal({ isShown: true, data: noteDetails, type: "edit" })
   }
 
-  // Delete Note
   const deleteNote = async (data) => {
     const noteId = data._id
 
@@ -93,7 +109,6 @@ const Home = () => {
       })
 
       if (res.data.success === false) {
-        console.log(res.data.message)
         toast.error(res.data.message)
         return
       }
@@ -122,7 +137,6 @@ const Home = () => {
 
       if (res.data.success === false) {
         toast.error(res.data.message)
-        console.log(res.data.message)
         return
       }
 
@@ -133,51 +147,97 @@ const Home = () => {
     }
   }
 
+  const updateIsStarred = async (noteData) => {
+    const noteId = noteData._id
+
+    try {
+      const res = await axios.put(
+        "http://localhost:3000/api/note/update-note-starred/" + noteId,
+        { isStarred: !noteData.isStarred },
+        { withCredentials: true }
+      )
+
+      if (res.data.success === false) {
+        toast.error(res.data.message)
+        return
+      }
+
+      toast.success(res.data.message)
+      getAllNotes()
+    } catch (error) {
+      toast.error(error.message)
+    }
+  }
+
+  const updateIsFavourite = async (noteData) => {
+    const noteId = noteData._id
+
+    try {
+      const res = await axios.put(
+        "http://localhost:3000/api/note/update-note-favourite/" + noteId,
+        { isFavourite: !noteData.isFavourite },
+        { withCredentials: true }
+      )
+
+      if (res.data.success === false) {
+        toast.error(res.data.message)
+        return
+      }
+
+      toast.success(res.data.message)
+      getAllNotes()
+    } catch (error) {
+      toast.error(error.message)
+    }
+  }
+
   return (
-    <>
+    <div className="flex flex-col w-full gap-6">
       <Navbar
         userInfo={userInfo}
         onSearchNote={onSearchNote}
         handleClearSearch={handleClearSearch}
       />
 
-      <div className="container mx-auto">
-        {allNotes.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mt-8 max-md:m-5">
-            {allNotes.map((note, index) => (
-              <NoteCard
-                key={note._id}
-                title={note.title}
-                date={note.createdAt}
-                content={note.content}
-                tags={note.tags}
-                isPinned={note.isPinned}
-                onEdit={() => {
-                  handleEdit(note)
-                }}
-                onDelete={() => {
-                  deleteNote(note)
-                }}
-                onPinNote={() => {
-                  updateIsPinned(note)
-                }}
-              />
-            ))}
-          </div>
-        ) : (
-          <EmptyCard
-            imgSrc={
-              isSearch
-                ? "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQtakcQoMFXwFwnlochk9fQSBkNYkO5rSyY9A&s"
-                : "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQDCtZLuixBFGTqGKdWGLaSKiO3qyhW782aZA&s"
-            }
-            message={
-              isSearch
-                ? "Oops! No Notes found matching your search"
-                : `Ready to capture your ideas? Click the 'Add' button to start noting down your thoughts, inspiration and reminders. Let's get started!`
-            }
-          />
-        )}
+      <div className="w-full min-h-screen rounded-[10px] bg-white flex justify-center align-center">
+        <div className="container mx-auto w-[95%]">
+          <NoteFilters onFilter={handleFilterChange} />
+
+          {allNotes.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mt-8 max-md:m-5">
+              {allNotes.map((note) => (
+                <NoteCard
+                  key={note._id}
+                  title={note.title}
+                  date={note.createdAt}
+                  content={note.content}
+                  tags={note.tags}
+                  isPinned={note.isPinned}
+                  isFavourite={note.isFavourite}
+                  isStarred={note.isStarred}
+                  onEdit={() => handleEdit(note)}
+                  onDelete={() => deleteNote(note)}
+                  onPinNote={() => updateIsPinned(note)}
+                  onFavourite={() => updateIsFavourite(note)}
+                  onStar={() => updateIsStarred(note)}
+                />
+              ))}
+            </div>
+          ) : (
+            <EmptyCard
+              imgSrc={
+                isSearch
+                  ? "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQtakcQoMFXwFwnlochk9fQSBkNYkO5rSyY9A&s"
+                  : "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQDCtZLuixBFGTqGKdWGLaSKiO3qyhW782aZA&s"
+              }
+              message={
+                isSearch
+                  ? "Oops! No Notes found matching your search"
+                  : `Ready to capture your ideas? Click the 'Add' button to start noting down your thoughts, inspiration and reminders. Let's get started!`
+              }
+            />
+          )}
+        </div>
       </div>
 
       <button
@@ -209,8 +269,8 @@ const Home = () => {
           getAllNotes={getAllNotes}
         />
       </Modal>
-    </>
+    </div>
   )
 }
 
-export default Home
+export default AllNotesPage

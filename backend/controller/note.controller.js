@@ -1,6 +1,8 @@
 import Note from "../models/note.model.js"
 import { errorHandler } from "../utils/error.js"
 
+
+
 export const addNote = async (req, res, next) => {
   const { title, content, tags } = req.body
 
@@ -81,20 +83,33 @@ export const editNote = async (req, res, next) => {
 }
 
 export const getAllNotes = async (req, res, next) => {
-  const userId = req.user.id
+  const userId = req.user.id;
+  const { tag, sortBy } = req.query;
+
+  const filter = { userId };
+  if (tag) {
+    filter.tags = { $in: [tag] };
+  }
+
+  let sortOption = { createdAt: -1 }; // Default: latest
+
+  if (sortBy === "oldest") sortOption = { createdAt: 1 };
+  if (sortBy === "az") sortOption = { title: 1 };
+  if (sortBy === "za") sortOption = { title: -1 };
 
   try {
-    const notes = await Note.find({ userId: userId }).sort({ isPinned: -1 })
+    const notes = await Note.find(filter).sort(sortOption);
 
     res.status(200).json({
       success: true,
-      message: "All notes retrived successfully",
+      message: "Filtered notes retrieved successfully",
       notes,
-    })
+    });
   } catch (error) {
-    next(error)
+    next(error);
   }
-}
+};
+
 
 export const deleteNote = async (req, res, next) => {
   const noteId = req.params.noteId
@@ -203,3 +218,140 @@ export const updateNoteTags = async (req, res, next) => {
     next(error);
   }
 };
+
+export const updateNoteStarred = async (req, res, next) => {
+  try {
+    const note = await Note.findById(req.params.noteId);
+
+    if (!note) {
+      return next(errorHandler(404, "Note not found"));
+    }
+
+    if (req.user.id !== note.userId) {
+      return next(errorHandler(401, "You can only update your own note!"));
+    }
+
+    const { isStarred } = req.body;
+    note.isStarred = isStarred;
+
+    await note.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Note starred status updated successfully",
+      note,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateNoteFavourite = async (req, res, next) => {
+  try {
+    const note = await Note.findById(req.params.noteId);
+
+    if (!note) {
+      return next(errorHandler(404, "Note not found"));
+    }
+
+    if (req.user.id !== note.userId) {
+      return next(errorHandler(401, "You can only update your own note!"));
+    }
+
+    const { isFavourite } = req.body;
+    note.isFavourite = isFavourite;
+
+    await note.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Note favourite status updated successfully",
+      note,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+
+
+
+
+
+export const getNoteStats = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // ✅ 1. Notes per Day
+    const notesPerDay = await Note.aggregate([
+      { $match: { userId } },
+      {
+        $group: {
+          _id: {
+            $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
+          },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          date: "$_id",
+          count: 1,
+          _id: 0,
+        },
+      },
+      { $sort: { date: 1 } },
+    ]);
+
+    // ✅ 2. Top Tags
+    const topTags = await Note.aggregate([
+      { $match: { userId } },
+      { $unwind: "$tags" },
+      {
+        $group: {
+          _id: "$tags",
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          tag: "$_id",
+          count: 1,
+          _id: 0,
+        },
+      },
+      { $sort: { count: -1 } },
+      { $limit: 5 },
+    ]);
+
+    // ✅ 3. Average Note Length
+    const notes = await Note.find({ userId });
+    const averageNoteLength = notes.length
+      ? Math.round(
+          notes.reduce((sum, note) => sum + note.content.length, 0) /
+            notes.length
+        )
+      : 0;
+
+    // ✅ 4. Recent Notes
+    const recentNotes = await Note.find({ userId })
+      .sort({ createdAt: -1 })
+      .limit(3);
+
+    console.log("📌 recentNotes fetched:", recentNotes.length);
+
+    return res.status(200).json({
+      notesPerDay,
+      topTags,
+      averageNoteLength,
+      recentNotes,
+    });
+  } catch (error) {
+    console.error("❌ Stats error:", error.message);
+    res.status(500).json({ message: "Failed to fetch dashboard stats" });
+  }
+};
+
+
+

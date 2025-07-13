@@ -1,4 +1,4 @@
-import  { useState } from "react"
+import { useState } from "react"
 import PasswordInput from "../../components/Input/PasswordInput"
 import { Link, useNavigate } from "react-router-dom"
 import { validateEmail } from "../../utils/helper"
@@ -34,8 +34,6 @@ const Login = () => {
 
     setError("")
 
-    // Login API
-
     try {
       dispatch(signInStart())
 
@@ -47,8 +45,8 @@ const Login = () => {
 
       if (res.data.success === false) {
         toast.error(res.data.message)
-        console.log(res.data)
-        dispatch(signInFailure(data.message))
+        dispatch(signInFailure(res.data.message))
+        return
       }
 
       toast.success(res.data.message)
@@ -61,7 +59,7 @@ const Login = () => {
   }
 
   return (
-    <div className="flex items-center justify-center mt-28">
+    <div className="flex items-center justify-center  min-h-screen">
       <div className="w-96 border rounded bg-white px-7 py-10">
         <form onSubmit={handleLogin}>
           <h4 className="text-2xl mb-7">Login</h4>
@@ -79,6 +77,16 @@ const Login = () => {
             onChange={(e) => setPassword(e.target.value)}
           />
 
+          {/* Forgot password link */}
+          <div className="text-right mb-2">
+            <Link
+              to="/forgot-password"
+              className="text-sm text-[#2B85FF] hover:underline"
+            >
+              Forgot Password?
+            </Link>
+          </div>
+
           {error && <p className="text-red-500 text-sm pb-1">{error}</p>}
 
           <button type="submit" className="btn-primary">
@@ -88,7 +96,7 @@ const Login = () => {
           <p className="text-sm text-center mt-4">
             Not registered yet?{" "}
             <Link
-              to={"/signup"}
+              to="/signup"
               className="font-medium text-[#2B85FF] underline"
             >
               Create an account
